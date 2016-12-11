@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,4 +24,7 @@ public class Booking {
 
     @Column(nullable = false)
     private LocalDateTime dateTime;
+
+    @Column(nullable = false)
+    private Duration duration;
 }

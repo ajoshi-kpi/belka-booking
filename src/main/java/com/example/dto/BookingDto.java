@@ -13,4 +13,5 @@ public class BookingDto {
     private String username;
     private String roomTitle;
     private LocalDateTime dateTime;
+    private Long minutes;
 }
