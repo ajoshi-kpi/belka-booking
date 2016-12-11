@@ -1,6 +1,7 @@
 package com.example.domain;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @Data
+@EqualsAndHashCode
 public class Room {
     @Id
     @GeneratedValue

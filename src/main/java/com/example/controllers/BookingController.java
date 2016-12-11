@@ -34,32 +34,34 @@ public class BookingController {
         LocalDateTime dateTime = bookingDto.getDateTime();
         Duration bookingDuration = Duration.ofMinutes(bookingDto.getMinutes());
 
-        if(!canBeBooked(dateTime, bookingDuration)) {
+        Room room = roomRepository.findByTitle(bookingDto.getRoomTitle());
+        if(!canBeBooked(dateTime, bookingDuration, room)) {
             throw new BookingException();
         }
 
-        Room room = roomRepository.findByTitle(bookingDto.getRoomTitle());
         User user = userRepository.findByUsername(bookingDto.getUsername());
         if(user == null) throw new NoSuchUserException();
         if(room == null) throw new NoSuchRoomException();
         return asm.toFullResource(bookingRepository.save(createBooking(user, room, dateTime, bookingDuration)));
     }
 
-    private boolean canBeBooked(LocalDateTime bookingStart, Duration bookingDuration) {
+    private boolean canBeBooked(LocalDateTime bookingStart, Duration bookingDuration, Room roomToBook) {
         boolean canBeBooked = true;
         LocalDateTime bookingEnd = bookingStart.plusMinutes(bookingDuration.toMinutes());
         for (Booking currentBooking : bookingRepository.findAll()) {
-            LocalDateTime currentBookingStart = currentBooking.getDateTime();
-            LocalDateTime currentBookingEnd = currentBookingStart.plusMinutes(bookingDuration.toMinutes());
-            if ((bookingStart.isAfter(currentBookingStart) && bookingStart.isBefore(currentBookingEnd)) ||
-                (bookingEnd.isAfter(currentBookingStart) && bookingEnd.isBefore(currentBookingEnd))) {
-                canBeBooked = false;
-            }
-            if(bookingStart.isEqual(currentBookingStart)) {
-                canBeBooked = false;
-            }
-            if(bookingEnd.isEqual(currentBookingStart)) {
-                canBeBooked = false;
+            if(currentBooking.getRoom().equals(roomToBook)) {
+                LocalDateTime currentBookingStart = currentBooking.getDateTime();
+                LocalDateTime currentBookingEnd = currentBookingStart.plusMinutes(bookingDuration.toMinutes());
+                if ((bookingStart.isAfter(currentBookingStart) && bookingStart.isBefore(currentBookingEnd)) ||
+                        (bookingEnd.isAfter(currentBookingStart) && bookingEnd.isBefore(currentBookingEnd))) {
+                    canBeBooked = false;
+                }
+                if (bookingStart.isEqual(currentBookingStart)) {
+                    canBeBooked = false;
+                }
+                if (bookingEnd.isEqual(currentBookingStart)) {
+                    canBeBooked = false;
+                }
             }
         }
         return canBeBooked;
