@@ -1,4 +1,4 @@
-package com.example.controllers;
+package com.example.controllers.bookings;
 
 import com.example.domain.Booking;
 import com.example.domain.Room;

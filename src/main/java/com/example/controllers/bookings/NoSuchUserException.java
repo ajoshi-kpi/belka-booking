@@ -1,4 +1,4 @@
-package com.example.controllers;
+package com.example.controllers.bookings;
 
 public class NoSuchUserException extends Exception {
     public NoSuchUserException() {
