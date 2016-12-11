@@ -8,12 +8,11 @@ import com.example.repositories.BookingRepository;
 import com.example.repositories.RoomRepository;
 import com.example.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.PersistentEntityResource;
+import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -30,7 +29,8 @@ public class BookingController {
 
     @RequestMapping(value = "/bookings/newBooking", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
-    public void book(@RequestBody BookingDto bookingDto) throws BookingException {
+    @ResponseBody
+    public PersistentEntityResource book(@RequestBody BookingDto bookingDto, PersistentEntityResourceAssembler asm) throws BookingException, NoSuchUserException, NoSuchRoomException {
         LocalDateTime dateTime = bookingDto.getDateTime();
         Duration bookingDuration = Duration.ofMinutes(bookingDto.getMinutes());
 
@@ -40,17 +40,25 @@ public class BookingController {
 
         Room room = roomRepository.findByTitle(bookingDto.getRoomTitle());
         User user = userRepository.findByUsername(bookingDto.getUsername());
-        bookingRepository.save(createBooking(user, room, dateTime, bookingDuration));
+        if(user == null) throw new NoSuchUserException();
+        if(room == null) throw new NoSuchRoomException();
+        return asm.toFullResource(bookingRepository.save(createBooking(user, room, dateTime, bookingDuration)));
     }
 
     private boolean canBeBooked(LocalDateTime bookingStart, Duration bookingDuration) {
         boolean canBeBooked = true;
-        LocalDateTime bookindEnd = bookingStart.plusMinutes(bookingDuration.toMinutes());
+        LocalDateTime bookingEnd = bookingStart.plusMinutes(bookingDuration.toMinutes());
         for (Booking currentBooking : bookingRepository.findAll()) {
             LocalDateTime currentBookingStart = currentBooking.getDateTime();
             LocalDateTime currentBookingEnd = currentBookingStart.plusMinutes(bookingDuration.toMinutes());
             if ((bookingStart.isAfter(currentBookingStart) && bookingStart.isBefore(currentBookingEnd)) ||
-                (bookindEnd.isAfter(currentBookingStart) && bookindEnd.isBefore(currentBookingEnd))) {
+                (bookingEnd.isAfter(currentBookingStart) && bookingEnd.isBefore(currentBookingEnd))) {
+                canBeBooked = false;
+            }
+            if(bookingStart.isEqual(currentBookingStart)) {
+                canBeBooked = false;
+            }
+            if(bookingEnd.isEqual(currentBookingStart)) {
                 canBeBooked = false;
             }
         }
