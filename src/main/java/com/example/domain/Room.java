@@ -4,17 +4,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalTime;
 import java.util.Set;
 
 @Entity
 @NoArgsConstructor
 @Data
-public class User {
-    @Id @GeneratedValue
+public class Room {
+    @Id
+    @GeneratedValue
     private Long id;
 
     @Column(nullable = false)
-    private String username;
-    @OneToMany(mappedBy = "user")
+    private String title;
+
+    private LocalTime openTime;
+    private LocalTime closeTime;
+
+    @OneToMany(mappedBy = "room")
     private Set<Booking> bookings;
 }
